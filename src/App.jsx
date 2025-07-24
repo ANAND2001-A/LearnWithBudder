@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import '@fortawesome/fontawesome-free/css/all.min.css';
 import { FirebaseProvider } from './context/FirebaseContext';
 import Layout from './components/Layout';
 import AdminLayout from './components/AdminLayout';

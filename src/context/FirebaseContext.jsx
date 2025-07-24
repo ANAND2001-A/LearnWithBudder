@@ -24,8 +24,16 @@ export function FirebaseProvider({ children }) {
 
   const addCourse = async (course) => {
     try {
-      await addDoc(collection(db, 'courses'), course);
-      console.log('Course added:', course);
+      const courseData = {
+        ...course,
+        createdAt: course.createdAt || new Date().toISOString(),
+        createdBy: course.createdBy || 'unknown',
+        curriculum: course.curriculum || [],
+        requirements: course.requirements || '',
+        learningOutcomes: course.learningOutcomes || '',
+      };
+      await addDoc(collection(db, 'courses'), courseData);
+      console.log('Course added:', courseData);
     } catch (error) {
       console.error('Error adding course:', error);
       throw error;
@@ -34,8 +42,22 @@ export function FirebaseProvider({ children }) {
 
   const addBlog = async (blog) => {
     try {
-      await addDoc(collection(db, 'blogs'), blog);
-      console.log('Blog added:', blog);
+      const blogData = {
+        ...blog,
+        createdAt: blog.createdAt || '2025-07-24T11:18:00Z', // 04:48 PM IST converted to UTC
+        createdBy: blog.createdBy || 'unknown',
+        tags: blog.tags || [],
+        status: blog.status || 'draft',
+        publishDate: blog.publishDate || '',
+        isFeatured: blog.isFeatured || false,
+        author: blog.author || '',
+        metaTitle: blog.metaTitle || '',
+        metaDescription: blog.metaDescription || '',
+        slug: blog.slug || '',
+        imagePreview: blog.imagePreview || '',
+      };
+      await addDoc(collection(db, 'blogs'), blogData);
+      console.log('Blog added:', blogData);
     } catch (error) {
       console.error('Error adding blog:', error);
       throw error;
