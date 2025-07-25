@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, addDoc, onSnapshot } from 'firebase/firestore';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPhoneNumber, RecaptchaVerifier } from 'firebase/auth';
 
 const FirebaseContext = createContext();
 
@@ -16,6 +17,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
 export function FirebaseProvider({ children }) {
   const [courses, setCourses] = useState([]);
@@ -44,7 +46,7 @@ export function FirebaseProvider({ children }) {
     try {
       const blogData = {
         ...blog,
-        createdAt: blog.createdAt || '2025-07-24T11:18:00Z', // 04:48 PM IST converted to UTC
+        createdAt: blog.createdAt || '2025-07-24T11:18:00Z',
         createdBy: blog.createdBy || 'unknown',
         tags: blog.tags || [],
         status: blog.status || 'draft',
@@ -70,6 +72,43 @@ export function FirebaseProvider({ children }) {
       console.log('Contact message added:', message);
     } catch (error) {
       console.error('Error adding contact message:', error);
+      throw error;
+    }
+  };
+
+  const signup = async (email, password) => {
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+      console.log('User signed up successfully with email');
+    } catch (error) {
+      console.error('Email signup error:', error);
+      throw error;
+    }
+  };
+
+  const signIn = async (email, password) => {
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      console.log('User signed in successfully with email');
+    } catch (error) {
+      console.error('Email sign-in error:', error);
+      throw error;
+    }
+  };
+
+  const signupWithPhone = async (phone, recaptchaContainerId) => {
+    try {
+      if (!window.recaptchaVerifier) {
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaContainerId, {
+          size: 'invisible',
+          callback: (response) => {},
+        });
+      }
+      const confirmationResult = await signInWithPhoneNumber(auth, phone, window.recaptchaVerifier);
+      console.log('OTP sent for phone authentication');
+      return confirmationResult;
+    } catch (error) {
+      console.error('Phone authentication error:', error);
       throw error;
     }
   };
@@ -124,7 +163,11 @@ export function FirebaseProvider({ children }) {
     contacts,
     addCourse,
     addBlog,
-    addContactMessage
+    addContactMessage,
+    auth,
+    signup,
+    signIn,
+    signupWithPhone,
   };
 
   return <FirebaseContext.Provider value={value}>{children}</FirebaseContext.Provider>;

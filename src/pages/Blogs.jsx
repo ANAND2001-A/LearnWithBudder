@@ -12,7 +12,7 @@ function Blogs() {
   );
 
   return (
-    <div className="container mx-auto py-12">
+    <div className="container mx-auto py-12 pt-36 px-4">
       <h1 className="text-4xl font-bold mb-8 text-center">Our Blogs</h1>
       <input
         type="text"
