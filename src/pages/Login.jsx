@@ -10,7 +10,7 @@ function Login() {
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [confirmation, setConfirmation] = useState(null);
-  const [loginMethod, setLoginMethod] = useState('email'); // 'email' or 'phone'
+  const [loginMethod, setLoginMethod] = useState('email'); // 'emdfdfail' or 'phone'
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
