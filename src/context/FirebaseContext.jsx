@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, addDoc, onSnapshot } from 'firebase/firestore';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPhoneNumber, RecaptchaVerifier } from 'firebase/auth';
 
 const FirebaseContext = createContext();
 
@@ -16,6 +17,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
 export function FirebaseProvider({ children }) {
   const [courses, setCourses] = useState([]);
@@ -24,8 +26,16 @@ export function FirebaseProvider({ children }) {
 
   const addCourse = async (course) => {
     try {
-      await addDoc(collection(db, 'courses'), course);
-      console.log('Course added:', course);
+      const courseData = {
+        ...course,
+        createdAt: course.createdAt || new Date().toISOString(),
+        createdBy: course.createdBy || 'unknown',
+        curriculum: course.curriculum || [],
+        requirements: course.requirements || '',
+        learningOutcomes: course.learningOutcomes || '',
+      };
+      await addDoc(collection(db, 'courses'), courseData);
+      console.log('Course added:', courseData);
     } catch (error) {
       console.error('Error adding course:', error);
       throw error;
@@ -34,8 +44,22 @@ export function FirebaseProvider({ children }) {
 
   const addBlog = async (blog) => {
     try {
-      await addDoc(collection(db, 'blogs'), blog);
-      console.log('Blog added:', blog);
+      const blogData = {
+        ...blog,
+        createdAt: blog.createdAt || '2025-07-24T11:18:00Z',
+        createdBy: blog.createdBy || 'unknown',
+        tags: blog.tags || [],
+        status: blog.status || 'draft',
+        publishDate: blog.publishDate || '',
+        isFeatured: blog.isFeatured || false,
+        author: blog.author || '',
+        metaTitle: blog.metaTitle || '',
+        metaDescription: blog.metaDescription || '',
+        slug: blog.slug || '',
+        imagePreview: blog.imagePreview || '',
+      };
+      await addDoc(collection(db, 'blogs'), blogData);
+      console.log('Blog added:', blogData);
     } catch (error) {
       console.error('Error adding blog:', error);
       throw error;
@@ -48,6 +72,43 @@ export function FirebaseProvider({ children }) {
       console.log('Contact message added:', message);
     } catch (error) {
       console.error('Error adding contact message:', error);
+      throw error;
+    }
+  };
+
+  const signup = async (email, password, firstName, lastName) => {
+    try {
+      await createUserWithEmailAndPassword(auth, email, password, firstName, lastName);
+      console.log('User signed up successfully with email');
+    } catch (error) {
+      console.error('Email signup error:', error);
+      throw error;
+    }
+  };
+
+  const signIn = async (email, password) => {
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      console.log('User signed in successfully with email');
+    } catch (error) {
+      console.error('Email sign-in error:', error);
+      throw error;
+    }
+  };
+
+  const signupWithPhone = async (phone, recaptchaContainerId) => {
+    try {
+      if (!window.recaptchaVerifier) {
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaContainerId, {
+          size: 'invisible',
+          callback: (response) => {},
+        });
+      }
+      const confirmationResult = await signInWithPhoneNumber(auth, phone, window.recaptchaVerifier);
+      console.log('OTP sent for phone authentication');
+      return confirmationResult;
+    } catch (error) {
+      console.error('Phone authentication error:', error);
       throw error;
     }
   };
@@ -102,7 +163,11 @@ export function FirebaseProvider({ children }) {
     contacts,
     addCourse,
     addBlog,
-    addContactMessage
+    addContactMessage,
+    auth,
+    signup,
+    signIn,
+    signupWithPhone,
   };
 
   return <FirebaseContext.Provider value={value}>{children}</FirebaseContext.Provider>;
