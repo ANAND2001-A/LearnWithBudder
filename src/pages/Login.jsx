@@ -1,110 +1,229 @@
-import { useState } from "react";
-import { useAuth } from "../context/AuthContext";
+import { useState, useEffect } from "react";
+import { useFirebase } from "../context/FirebaseContext";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import userIcon from "../assets/icon/acc.svg";
+import passwordIcon from "../assets/icon/pass.svg";
 
 function Login() {
+  const { auth, signIn, signupWithPhone } = useFirebase();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { login } = useAuth();
+  const [phone, setPhone] = useState("");
+  const [otp, setOtp] = useState("");
+  const [confirmation, setConfirmation] = useState(null);
+  const [loginMethod, setLoginMethod] = useState("email");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  // Ensure recaptcha is rendered before sending OTP
+  useEffect(() => {
+    if (loginMethod === "phone" && window.recaptchaVerifier == null) {
+      window.recaptchaVerifier = new window.firebase.auth.RecaptchaVerifier(
+        "recaptcha-container",
+        {
+          size: "invisible",
+          callback: () => {},
+        }
+      );
+    }
+  }, [loginMethod]);
 
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await login(email, password);
+      await signIn(email, password);
+      alert("Login successful!");
       navigate("/admin");
     } catch (error) {
       alert("Login failed: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePhoneSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const confirmationResult = await signupWithPhone(
+        phone,
+        "recaptcha-container"
+      );
+      setConfirmation(confirmationResult);
+      alert("OTP sent!");
+    } catch (error) {
+      alert("Failed to send OTP: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOTP = async (e) => {
+    e.preventDefault();
+    if (!confirmation) {
+      alert("No OTP confirmation found.");
+      return;
+    }
+    setLoading(true);
+    try {
+      await confirmation.confirm(otp);
+      alert("Phone number verified and logged in!");
+      navigate("/admin");
+    } catch (error) {
+      alert("Invalid OTP: " + error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="flex flex-col md:flex-row justify-between items-start md:items-center px-8 py-44 gap-10 bg-gray-50 min-h-screen">
-      {/* Left Side: Title and Image */}
-      <div className="md:w-1/2">
-        <h2 className="text-2xl md:text-3xl font-semibold mb-2">
-          Students Testimonials
-        </h2>
-        <p className="text-gray-600 mb-6">
-          Lorem ipsum dolor sit amet consectetur. Tempus tincidunt etiam eget
-          elit id imperdiet et. Cras eu sit dignissim lorem nibh et. Ac cum eget
-          habitasse in velit fringilla feugiat senectus in.
-        </p>
-
-        {/* 👉 Image instead of testimonial */}
-        <div className="bg-white shadow-md rounded-xl overflow-hidden">
-          <img
-            src="src/assets/bg.jpg"
-            alt="Student testimonial"
-            className="w-full h-60 object-cover"
-          />
-        </div>
-
-        {/* Arrows below image */}
-        <div className="flex gap-2 mt-4">
-          <button className="bg-white border rounded p-2 hover:bg-gray-100">
-            ←
-          </button>
-          <button className="bg-white border rounded p-2 hover:bg-gray-100">
-            →
-          </button>
-        </div>
-      </div>
-
-      {/* Right Side: Login Box */}
-      <div className="w-full md:w-[400px] bg-white shadow-md rounded-xl p-8 ">
-        <h2 className="text-2xl font-semibold mb-2">Login</h2>
-        <p className="text-gray-500 mb-6">
-          Welcome back! Please log in to access your account.
-        </p>
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-600">
-            Email
-          </label>
-          <input
-            type="email"
-            placeholder="Enter your Email"
-            className="mt-1 w-full border rounded px-4 py-2 outline-none focus:ring-2 focus:ring-orange-400"
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-600">
-            Password
-          </label>
-          <input
-            type="password"
-            placeholder="Enter your Password"
-            className="mt-1 w-full border rounded px-4 py-2 outline-none focus:ring-2 focus:ring-orange-400"
-          />
-          <div className="text-right text-sm text-blue-600 mt-1 cursor-pointer">
-            Forgot Password?
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-900 to-green-700">
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="relative bg-white/10 backdrop-blur-md border border-white/20 rounded-xl shadow-xl p-8 pt-16 w-[350px]"
+      >
+        {/* User Icon */}
+        <div className="absolute -top-12 left-1/2 transform -translate-x-1/2">
+          <div className="bg-green-900 w-20 h-20 rounded-full flex items-center justify-center">
+            <img src={userIcon} alt="User Icon" className="w-10 h-10" />
           </div>
         </div>
-        <div className="flex items-center mb-4">
-          <input type="checkbox" className="mr-2" />
-          <span className="text-sm text-gray-600">Remember Me</span>
+
+        {/* Login Toggle */}
+        <div className="flex justify-center gap-2 mb-6">
+          <button
+            onClick={() => {
+              setLoginMethod("email");
+              setConfirmation(null);
+            }}
+            className={`px-4 py-2 text-sm rounded ${
+              loginMethod === "email"
+                ? "bg-green-800 text-white"
+                : "bg-white/20 text-white"
+            }`}
+            disabled={loading}
+          >
+            Email
+          </button>
+          <button
+            onClick={() => {
+              setLoginMethod("phone");
+              setConfirmation(null);
+            }}
+            className={`px-4 py-2 text-sm rounded ${
+              loginMethod === "phone"
+                ? "bg-green-800 text-white"
+                : "bg-white/20 text-white"
+            }`}
+            disabled={loading}
+          >
+            Phone
+          </button>
         </div>
-        <button className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded mb-4">
-          Login
-        </button>
-        <div className="flex items-center justify-center text-sm text-gray-500 mb-4">
-          OR
-        </div>
-        <button className="w-full flex items-center justify-center border py-2 rounded hover:bg-gray-100">
-          <img
-            src="https://img.icons8.com/color/16/000000/google-logo.png"
-            alt="Google logo"
-            className="mr-2"
-          />
-          Login with Google
-        </button>
-        <p className="text-center text-sm mt-4 text-gray-600">
+
+        {/* Email Login Form */}
+        {loginMethod === "email" ? (
+          <form onSubmit={handleEmailSubmit} className="space-y-4">
+            <div className="flex items-center bg-white/20 px-3 py-2 rounded">
+              <div className="w-5 h-5 mr-2 pb-1">
+                <img src={userIcon} alt="Email Icon" />
+              </div>
+              <input
+                type="email"
+                className="bg-transparent w-full text-white placeholder-gray-300 focus:outline-none"
+                placeholder="Email ID"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div className="flex items-center bg-white/20 px-3 py-2 rounded">
+              <div className="w-4 h-4 mr-2 pb-1">
+                <img src={passwordIcon} alt="Password Icon" />
+              </div>
+              <input
+                type="password"
+                className="bg-transparent w-full text-white placeholder-gray-300 focus:outline-none"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="flex justify-between text-sm text-white">
+              <label className="flex items-center space-x-1">
+                <input type="checkbox" className="accent-green-700" />
+                <span>Remember me</span>
+              </label>
+              <button
+                type="button"
+                className="text-gray-300 italic hover:underline"
+              >
+                Forgot Password?
+              </button>
+            </div>
+
+            <button
+              type="submit"
+              className="w-full mt-2 bg-green-900 text-white py-2 rounded hover:bg-green-800"
+              disabled={loading}
+            >
+              {loading ? "Logging In..." : "Login"}
+            </button>
+          </form>
+        ) : !confirmation ? (
+          // Phone Number Input Form
+          <form onSubmit={handlePhoneSubmit} className="space-y-4">
+            <input
+              type="tel"
+              placeholder="+91XXXXXXXXXX"
+              className="w-full px-4 py-2 rounded bg-white/20 text-white placeholder-gray-300 focus:outline-none"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              required
+            />
+            <div id="recaptcha-container" className="mb-2" />
+            <button
+              type="submit"
+              className="w-full bg-green-900 text-white py-2 rounded hover:bg-green-800"
+              disabled={loading}
+            >
+              {loading ? "Sending OTP..." : "Send OTP"}
+            </button>
+          </form>
+        ) : (
+          // OTP Verification Form
+          <form onSubmit={handleVerifyOTP} className="space-y-4">
+            <input
+              type="text"
+              placeholder="Enter OTP"
+              className="w-full px-4 py-2 rounded bg-white/20 text-white placeholder-gray-300 focus:outline-none"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              required
+            />
+            <button
+              type="submit"
+              className="w-full bg-green-900 text-white py-2 rounded hover:bg-green-800"
+              disabled={loading}
+            >
+              {loading ? "Verifying..." : "Verify OTP"}
+            </button>
+          </form>
+        )}
+
+        <p className="mt-4 text-center text-white text-sm">
           Don't have an account?{" "}
-          <span className="text-blue-600 cursor-pointer">Sign Up ↗</span>
+          <Link to="/signup" className="text-green-200 hover:underline">
+            Sign Up
+          </Link>
         </p>
-      </div>
+      </motion.div>
     </div>
   );
 }

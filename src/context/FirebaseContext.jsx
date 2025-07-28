@@ -76,9 +76,9 @@ export function FirebaseProvider({ children }) {
     }
   };
 
-  const signup = async (email, password) => {
+  const signup = async (email, password, firstName, lastName) => {
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      await createUserWithEmailAndPassword(auth, email, password, firstName, lastName);
       console.log('User signed up successfully with email');
     } catch (error) {
       console.error('Email signup error:', error);

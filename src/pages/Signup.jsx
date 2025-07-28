@@ -6,6 +6,8 @@ import { motion } from 'framer-motion';
 function Signup() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [firstName, setFirstname] =useState('');
+  const [lastName, setLastname] =useState('');
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [confirmation, setConfirmation] = useState(null);
@@ -18,7 +20,9 @@ function Signup() {
     e.preventDefault();
     setLoading(true);
     try {
-      await signup(email, password);
+      console.log(firstName )
+      console.log(lastName)
+      await signup(email, password, firstName, lastName);
       alert('Signup successful!');
       navigate('/admin');
     } catch (error) {
@@ -84,6 +88,28 @@ function Signup() {
 
         {signupMethod === 'email' ? (
           <form onSubmit={handleEmailSubmit}>
+             <div className="mb-4">
+              <label className="block text-gray-700">First Name</label>
+              <input
+                type="text"
+                className="w-full p-3 border rounded-lg"
+                value={firstName}
+                onChange={(e) => setFirstname(e.target.value)}
+                required
+                disabled={loading}
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-gray-700">Last Name</label>
+              <input
+                type="text"
+                className="w-full p-3 border rounded-lg"
+                value={lastName}
+                onChange={(e) => setLastname(e.target.value)}
+                required
+                disabled={loading}
+              />
+            </div>
             <div className="mb-4">
               <label className="block text-gray-700">Email</label>
               <input
