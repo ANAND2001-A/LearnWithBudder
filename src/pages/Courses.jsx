@@ -2,6 +2,9 @@ import { useFirebase } from '../context/FirebaseContext';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { FaUserCircle } from 'react-icons/fa';
+import { collection, doc, getFirestore, onSnapshot } from 'firebase/firestore';
+
 
 function Courses() {
   const { courses } = useFirebase();
@@ -12,6 +15,9 @@ function Courses() {
   const [sortBy, setSortBy] = useState('relevance');
   const [itemsPerPage, setItemsPerPage] = useState(12);
   const [currentPage, setCurrentPage] = useState(1);
+  const [authors, setAuthors] = useState({});
+const db = getFirestore(); // Firebase DB instance
+
 
   // Categories derived from courses or predefined
   const categories = ['All', ...new Set(courses.map(course => course.category || 'General'))];
@@ -49,8 +55,21 @@ function Courses() {
     currentPage * itemsPerPage
   );
 
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(db, 'users'), (snapshot) => {
+      const users = {};
+      snapshot.forEach(doc => {
+        users[doc.id] = doc.data();
+      });
+      setAuthors(users);
+    });
+  
+    return () => unsubscribe();
+  }, []);
+  
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 p-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header Section */}
         <div className="mb-8">
@@ -95,11 +114,10 @@ function Courses() {
               <button
                 key={category}
                 onClick={() => setSelectedCategory(category)}
-                className={`px-4 py-2 rounded-full text-sm font-medium ${
-                  selectedCategory === category
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+                className={`px-4 py-2 rounded-full text-sm font-medium ${selectedCategory === category
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
               >
                 {category}
               </button>
@@ -135,9 +153,8 @@ function Courses() {
           <div className="text-center text-gray-600">No courses found.</div>
         ) : (
           <div
-            className={`grid gap-6 mb-8 ${
-              viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'
-            }`}
+            className={`grid gap-6 mb-8 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'
+              }`}
           >
             {paginatedCourses.map(course => (
               <motion.div
@@ -156,15 +173,14 @@ function Courses() {
                   />
                   {course.tag && (
                     <span
-                      className={`absolute top-3 left-3 px-2 py-1 text-xs font-medium rounded-full ${
-                        course.tag === 'Bestseller'
-                          ? 'bg-orange-100 text-orange-800'
-                          : course.tag === 'New'
+                      className={`absolute top-3 left-3 px-2 py-1 text-xs font-medium rounded-full ${course.tag === 'Bestseller'
+                        ? 'bg-orange-100 text-orange-800'
+                        : course.tag === 'New'
                           ? 'bg-green-100 text-green-800'
                           : course.tag === 'Popular'
-                          ? 'bg-purple-100 text-purple-800'
-                          : 'bg-blue-100 text-blue-800'
-                      }`}
+                            ? 'bg-purple-100 text-purple-800'
+                            : 'bg-blue-100 text-blue-800'
+                        }`}
                     >
                       {course.tag}
                     </span>
@@ -181,24 +197,31 @@ function Courses() {
                     {course.title}
                   </h3>
                   <div className="flex items-center mb-3">
-                    <img
-                      src={course.instructorImage || 'https://via.placeholder.com/24'}
-                      alt={course.instructor || 'Instructor'}
-                      className="w-6 h-6 rounded-full mr-2 object-cover"
-                      onError={(e) => { e.target.src = 'https://via.placeholder.com/24'; }}
-                    />
+                    {authors[course.instructorId]?.photoURL ? (
+                      <img
+                        src={authors[course.instructorId].photoURL}
+                        alt="Instructor"
+                        className="w-6 h-6 rounded-full mr-2 object-cover"
+                        onError={(e) => { e.target.src = 'https://via.placeholder.com/24'; }}
+                      />
+                    ) : (
+                      <FaUserCircle className="w-6 h-6 text-gray-400 mr-2" />
+                    )}
+
+
                     <span className="text-sm text-gray-600">
-                      {course.instructor || 'Unknown Instructor'}
+                      Written by {authors[course.instructorId]?.fullName || 'Unknown Instructor'}
                     </span>
+
+
                   </div>
                   <div className="flex items-center mb-3">
                     <div className="flex items-center mr-2">
                       {[...Array(5)].map((_, i) => (
                         <i
                           key={i}
-                          className={`fas fa-star text-xs ${
-                            i < Math.floor(course.rating || 0) ? 'text-yellow-400' : 'text-gray-300'
-                          }`}
+                          className={`fas fa-star text-xs ${i < Math.floor(course.rating || 0) ? 'text-yellow-400' : 'text-gray-300'
+                            }`}
                         ></i>
                       ))}
                     </div>
@@ -271,9 +294,8 @@ function Courses() {
                   <button
                     key={i + 1}
                     onClick={() => setCurrentPage(i + 1)}
-                    className={`w-10 h-10 rounded-lg text-sm font-medium ${
-                      currentPage === i + 1 ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100'
-                    }`}
+                    className={`w-10 h-10 rounded-lg text-sm font-medium ${currentPage === i + 1 ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100'
+                      }`}
                   >
                     {i + 1}
                   </button>

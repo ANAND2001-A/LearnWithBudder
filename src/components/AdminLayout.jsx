@@ -27,7 +27,9 @@ function AdminLayout() {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm border-b p-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <h1 className="text-xl font-bold text-gray-900">Admin Panel</h1>
+          <h1 className="text-xl font-bold text-gray-900">{currentUser?.fullName || 'User'}
+
+          </h1>
           <button
             onClick={handleSignOut}
             className="bg-gray-800 text-white px-4 py-2 rounded-lg font-medium hover:bg-gray-700 transition-colors whitespace-nowrap"
