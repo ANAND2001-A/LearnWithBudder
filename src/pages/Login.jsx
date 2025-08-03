@@ -4,6 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import userIcon from "../assets/icon/acc.svg";
 import passwordIcon from "../assets/icon/pass.svg";
+import bot from "../assets/rocket2.gif"; // updated image
 
 function Login() {
   const { auth, signIn, signupWithPhone } = useFirebase();
@@ -16,7 +17,6 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Ensure recaptcha is rendered before sending OTP
   useEffect(() => {
     if (loginMethod === "phone" && window.recaptchaVerifier == null) {
       window.recaptchaVerifier = new window.firebase.auth.RecaptchaVerifier(
@@ -79,151 +79,129 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-900 to-green-700">
-      <motion.div
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="relative bg-white/10 backdrop-blur-md border border-white/20 rounded-xl shadow-xl p-8 pt-16 w-[350px]"
-      >
-        {/* User Icon */}
-        <div className="absolute -top-12 left-1/2 transform -translate-x-1/2">
-          <div className="bg-green-900 w-20 h-20 rounded-full flex items-center justify-center">
-            <img src={userIcon} alt="User Icon" className="w-10 h-10" />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#e0c3fc] to-[#FF7F50] px-4">
+      <div className="max-w-5xl w-full bg-gradient-to-br from-[#e0c3fc] to-[#FF7F50] rounded-2xl shadow-lg overflow-hidden flex flex-col md:flex-row">
+        {/* Left Side - Bot and Text */}
+        <div className="w-full md:w-1/2 text-center md:text-left px-8 py-12 flex flex-col justify-center items-center">
+          <h1 className="text-5xl font-bold text-gray-800 mb-6 leading-tight">
+            Be <br /> limitless
+          </h1>
+          <img src={bot} alt="Bot" className="w-64 h-64 object-contain" />
+        </div>
+
+        {/* Right Side - Login Form */}
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="w-full md:w-1/2 p-8 md:p-12"
+        >
+          {/* Login Toggle */}
+          <div className="flex justify-center gap-2 mb-6">
+            <button
+              onClick={() => {
+                setLoginMethod("email");
+                setConfirmation(null);
+              }}
+              className={`px-4 py-2 text-sm rounded border ${
+                loginMethod === "email"
+                  ? "bg-[#FF7F50] text-white"
+                  : "bg-white border-gray-300 text-gray-700"
+              }`}
+              disabled={loading}
+            >
+              Email
+            </button>
+            <button
+              onClick={() => {
+                setLoginMethod("phone");
+                setConfirmation(null);
+              }}
+              className={`px-4 py-2 text-sm rounded border ${
+                loginMethod === "phone"
+                  ? "bg-[#FF7F50] text-white"
+                  : "bg-white border-gray-300 text-gray-700"
+              }`}
+              disabled={loading}
+            > 
+              Phone
+            </button>
           </div>
-        </div>
 
-        {/* Login Toggle */}
-        <div className="flex justify-center gap-2 mb-6">
-          <button
-            onClick={() => {
-              setLoginMethod("email");
-              setConfirmation(null);
-            }}
-            className={`px-4 py-2 text-sm rounded ${
-              loginMethod === "email"
-                ? "bg-green-800 text-white"
-                : "bg-white/20 text-white"
-            }`}
-            disabled={loading}
-          >
-            Email
-          </button>
-          <button
-            onClick={() => {
-              setLoginMethod("phone");
-              setConfirmation(null);
-            }}
-            className={`px-4 py-2 text-sm rounded ${
-              loginMethod === "phone"
-                ? "bg-green-800 text-white"
-                : "bg-white/20 text-white"
-            }`}
-            disabled={loading}
-          >
-            Phone
-          </button>
-        </div>
-
-        {/* Email Login Form */}
-        {loginMethod === "email" ? (
-          <form onSubmit={handleEmailSubmit} className="space-y-4">
-            <div className="flex items-center bg-white/20 px-3 py-2 rounded">
-              <div className="w-5 h-5 mr-2 pb-1">
-                <img src={userIcon} alt="Email Icon" />
-              </div>
+          {/* Email Login */}
+          {loginMethod === "email" ? (
+            <form onSubmit={handleEmailSubmit} className="space-y-4">
               <input
                 type="email"
-                className="bg-transparent w-full text-white placeholder-gray-300 focus:outline-none"
                 placeholder="Email ID"
+                className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-[#FF7F50]"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
-            </div>
-            <div className="flex items-center bg-white/20 px-3 py-2 rounded">
-              <div className="w-4 h-4 mr-2 pb-1">
-                <img src={passwordIcon} alt="Password Icon" />
-              </div>
               <input
                 type="password"
-                className="bg-transparent w-full text-white placeholder-gray-300 focus:outline-none"
                 placeholder="Password"
+                className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-[#FF7F50]"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
-            </div>
-
-            <div className="flex justify-between text-sm text-white">
-              <label className="flex items-center space-x-1">
-                <input type="checkbox" className="accent-green-700" />
-                <span>Remember me</span>
-              </label>
               <button
-                type="button"
-                className="text-gray-300 italic hover:underline"
+                type="submit"
+                className="w-full bg-[#FF7F50] text-white py-2 rounded hover:bg-[#FF7F50]"
+                disabled={loading}
               >
-                Forgot Password?
+                {loading ? "Logging In..." : "Login"}
               </button>
-            </div>
+            </form>
+          ) : !confirmation ? (
+            <form onSubmit={handlePhoneSubmit} className="space-y-4">
+              <input
+                type="tel"
+                placeholder="+91XXXXXXXXXX"
+                className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-[#FF7F50]"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                required
+              />
+              <div id="recaptcha-container" className="mb-2" />
+              <button
+                type="submit"
+                className="w-full bg-[#FF7F50] text-white py-2 rounded hover:bg-[#FF7F50]"
+                disabled={loading}
+              >
+                {loading ? "Sending OTP..." : "Send OTP"}
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleVerifyOTP} className="space-y-4">
+              <input
+                type="text"
+                placeholder="Enter OTP"
+                className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-[#FF7F50]"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                required
+              />
+              <button
+                type="submit"
+                className="w-full bg-[#FF7F50] text-white py-2 rounded hover:bg-[#FF7F50]"
+                disabled={loading}
+              >
+                {loading ? "Verifying..." : "Verify OTP"}
+              </button>
+            </form>
+          )}
 
-            <button
-              type="submit"
-              className="w-full mt-2 bg-green-900 text-white py-2 rounded hover:bg-green-800"
-              disabled={loading}
-            >
-              {loading ? "Logging In..." : "Login"}
-            </button>
-          </form>
-        ) : !confirmation ? (
-          // Phone Number Input Form
-          <form onSubmit={handlePhoneSubmit} className="space-y-4">
-            <input
-              type="tel"
-              placeholder="+91XXXXXXXXXX"
-              className="w-full px-4 py-2 rounded bg-white/20 text-white placeholder-gray-300 focus:outline-none"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              required
-            />
-            <div id="recaptcha-container" className="mb-2" />
-            <button
-              type="submit"
-              className="w-full bg-green-900 text-white py-2 rounded hover:bg-green-800"
-              disabled={loading}
-            >
-              {loading ? "Sending OTP..." : "Send OTP"}
-            </button>
-          </form>
-        ) : (
-          // OTP Verification Form
-          <form onSubmit={handleVerifyOTP} className="space-y-4">
-            <input
-              type="text"
-              placeholder="Enter OTP"
-              className="w-full px-4 py-2 rounded bg-white/20 text-white placeholder-gray-300 focus:outline-none"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              required
-            />
-            <button
-              type="submit"
-              className="w-full bg-green-900 text-white py-2 rounded hover:bg-green-800"
-              disabled={loading}
-            >
-              {loading ? "Verifying..." : "Verify OTP"}
-            </button>
-          </form>
-        )}
-
-        <p className="mt-4 text-center text-white text-sm">
-          Don't have an account?{" "}
-          <Link to="/signup" className="text-green-200 hover:underline">
-            Sign Up
-          </Link>
-        </p>
-      </motion.div>
+          <p className="mt-4 text-center text-sm text-[#FFFFFF]">
+            Don't have an account?{' '}
+            <Link to="/signup" className="text-[#FFFFFF] hover:underline">
+              Sign Up
+            </Link>
+          </p>
+        </motion.div>
+      </div>
     </div>
   );
 }

@@ -33,10 +33,9 @@ function Home() {
           transition={{ duration: 1 }}
           className="relative z-10 text-center"
         >
-          <h1 className="text-3xl font-medium mb-4 text-[#1A1A1A]"><span className='text-[#FF9500]'>Unlock</span> Your Creative Potential</h1>
+          <h1 className="text-3xl font-medium mb-4 text-[#1A1A1A]"><span className='text-[#FF9500]'>Ignite</span>Your Web Development Journey</h1>
           <p className="text-xl mb-6">
-            Master HTML, CSS, JS, and more with our expert-led courses!
-          </p>
+          Learn HTML, CSS, JavaScript, and more — guided by industry experts!          </p>
           <Link
             to="/courses"
             className="bg-blue-600 px-6 py-3 rounded-full hover:bg-blue-700"
